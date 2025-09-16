@@ -4,6 +4,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.keys import Keys
 from webdriver_manager.chrome import ChromeDriverManager
 import time
 import os
@@ -15,13 +16,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Get credentials from environment variables
-LINKEDIN_EMAIL = os.getenv('NAUKRI_EMAIL')  # Using same email from Naukri
-LINKEDIN_PASSWORD = os.getenv('NAUKRI_PASSWORD')  # Using same password from Naukri
+LINKEDIN_EMAIL = os.getenv('LINKEDIN_EMAIL')  # Using same email from Naukri
+LINKEDIN_PASSWORD = os.getenv('LINKEDIN_PASSWORD')  # Using same password from Naukri
 
 # LinkedIn about section content
-ABOUT_SECTION = """🚀 Full Stack & DevOps Engineer with 1.6+ years of experience turning complex business requirements into scalable, high-performance applications.
+ABOUT_SECTION = """Full Stack & DevOps Engineer with 1.6+ years of experience turning complex business requirements into scalable, high-performance applications.
 
-💡 **What I Bring:**
+What I Bring:
 - 95% reduction in manual processes through intelligent automation
 - 99.9% system reliability across enterprise applications
 - Expertise in MERN Stack, Java Spring Boot, and AWS cloud solutions
@@ -99,35 +100,59 @@ class LinkedInProfileUpdater:
 
     def update_about_section(self, about_text):
         try:
-            # Click on name to go to profile
-            profile_name = self.wait.until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, "h3.profile-card-name.text-heading-large"))
-            )
-            profile_name.click()
-            logging.info("Clicked on profile name")
-            time.sleep(3)
+            # Navigate directly to the edit URL
+            self.driver.get('https://www.linkedin.com/in/akashpawar2000/add-edit/SUMMARY/?profileFormEntryPoint=PROFILE_SECTION')
+            logging.info("Navigated directly to edit about section")
+            time.sleep(3)  # Wait for page to load completely
 
-            # Click on edit about section
-            edit_buttons = self.driver.find_elements(By.CSS_SELECTOR, "use[href='#edit-medium']")
-            for button in edit_buttons:
-                # Find the parent button element
-                edit_button = button.find_element(By.XPATH, "./ancestor::button")
-                if edit_button.is_displayed():
-                    edit_button.click()
-                    logging.info("Clicked edit button")
-                    break
-
-            # Wait for the text area and clear it
+            # Wait for the specific textarea using the exact selector
+            textarea_selector = "textarea.fb-gai-text__textarea.artdeco-text-input--input.artdeco-text-input__textarea.artdeco-text-input__textarea--align-top"
             about_textarea = self.wait.until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, "textarea.fb-gai-text__textarea"))
+                EC.presence_of_element_located((By.CSS_SELECTOR, textarea_selector))
             )
+            
+            # First ensure the textarea is visible and interactable
+            self.driver.execute_script("arguments[0].scrollIntoView(true);", about_textarea)
+            time.sleep(1)
+            
+            # Clear the textarea using multiple approaches to ensure it works
+            # 1. Clear using Selenium
             about_textarea.clear()
-            about_textarea.send_keys(about_text)
+            
+            # 2. Clear using JavaScript
+            self.driver.execute_script("arguments[0].value = '';", about_textarea)
+            
+            # 3. Send backspace keys to ensure it's clear
+            about_textarea.send_keys(Keys.CONTROL + "a")  # Select all
+            about_textarea.send_keys(Keys.DELETE)  # Delete selection
+            
+            logging.info("Cleared the textarea")
+            time.sleep(1)  # Wait a moment after clearing
+            
+            # Replace emoji and special characters with plain text
+            sanitized_text = about_text.encode('ascii', 'ignore').decode('ascii')
+            
+            # Use multiple approaches to set the text
+            # 1. Set using JavaScript
+            self.driver.execute_script("arguments[0].value = arguments[1];", about_textarea, sanitized_text)
+            
+            # 2. Set using Selenium
+            about_textarea.send_keys(sanitized_text)
+            
+            # Trigger all relevant events
+            self.driver.execute_script("""
+                var element = arguments[0];
+                element.dispatchEvent(new Event('change'));
+                element.dispatchEvent(new Event('input'));
+                element.dispatchEvent(new Event('blur'));
+            """, about_textarea)
+            
             logging.info("Updated about section content")
+            time.sleep(2)  # Wait for content to settle
 
             # Click Save button
             save_button = self.wait.until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, "button[data-view-name='profile-form-save']"))
+                EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-view-name='profile-form-save']"))
             )
             save_button.click()
             logging.info("Saved changes")
