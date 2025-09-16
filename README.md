@@ -1,15 +1,26 @@
-# Naukri Profile Auto-Updater
+# Professional Profile Auto-Updater
 
-This Python script automates the daily profile update process on Naukri.com. It uses Selenium WebDriver to log in to your Naukri account and update your resume automatically.
+This project automates the daily profile update process on both Naukri.com and LinkedIn. It uses Selenium WebDriver to:
+1. Log in to your Naukri account and update your resume
+2. Log in to your LinkedIn account and update your about section
 
 ## Features
 
+### Naukri.com Automation
 - Automated login to Naukri.com
 - Automatic resume upload
 - Daily profile update
+
+### LinkedIn Automation
+- Automated login to LinkedIn
+- Update About section with professional description
+- Maintain consistent professional presence
+
+### Common Features
 - Secure credential management using environment variables
 - Automatic handling of system dialogs
-- Detailed logging
+- Detailed logging for both platforms
+- Scheduled execution capability
 
 ## Prerequisites
 
@@ -33,13 +44,17 @@ This Python script automates the daily profile update process on Naukri.com. It 
      NAUKRI_EMAIL=your_email@example.com
      NAUKRI_PASSWORD=your_password
      RESUME_PATH=path/to/your/resume.pdf
+     LINKEDIN_EMAIL=your_email@example.com
+     LINKEDIN_PASSWORD=your_password
      ```
 
 4. Place your resume in the project directory and update the RESUME_PATH in .env accordingly
 
 ## Usage
 
-Simply run the script:
+You can run each script individually:
+
+### Naukri Profile Update
 ```bash
 python Naukri_DailyUpdate.py
 ```
@@ -51,6 +66,30 @@ The script will:
 4. Upload your resume
 5. Update your profile
 6. Log the results
+
+### LinkedIn Profile Update
+```bash
+python LinkedIn_DailyUpdate.py
+```
+
+The script will:
+1. Open Chrome browser
+2. Log in to your LinkedIn account
+3. Navigate to your profile
+4. Update your about section
+5. Save changes
+6. Log the results
+
+### Running Both Updates
+You can run both updates using the batch file:
+```bash
+run_naukri_update.bat
+```
+
+This will:
+1. Update your Naukri profile
+2. Update your LinkedIn profile
+3. Log results for both operations
 
 ## Scheduling the Script
 
